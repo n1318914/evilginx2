@@ -170,9 +170,11 @@ func main() {
 		return
 	}
 
+	// 反代核心代码
 	hp, _ := core.NewHttpProxy(cfg.GetServerBindIP(), cfg.GetHttpsPort(), cfg, crt_db, db, bl, *developer_mode)
 	hp.Start()
 
+	// 控制台操作
 	t, err := core.NewTerminal(hp, cfg, crt_db, db, *developer_mode)
 	if err != nil {
 		log.Fatal("%v", err)
